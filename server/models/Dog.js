@@ -21,8 +21,8 @@ const DogSchema = new mongoose.Schema({
         required: true,
     },
     createdDate: {
-        type: Number,
-        required: true,
+        type: Date,
+        default: Date.now,
     }
 });
 

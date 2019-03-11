@@ -45,6 +45,9 @@ const readAllCats = (req, res, callback) => {
   Cat.find(callback);
 };
 
+const readAllDogs = (req, res, callback) => {
+  Dog.find(callback);
+};
 
 // function to find a specific cat on request.
 // Express functions always receive the request and the response.
@@ -103,7 +106,15 @@ const hostPage3 = (req, res) => {
 };
 
 const hostPage4 = (req, res) => {
-  res.render('page4');
+  const callback =(err, docs) => {
+    if(err) {
+      return res.json({err});
+    }
+
+    return res.render("page4", {dogs: docs});
+  }
+
+  readAllDogs(req, res, callback);
 };
 
 // function to handle get request to send the name
@@ -160,6 +171,10 @@ const setName = (req, res) => {
   return res;
 };
 
+const setDogName = (res, req) => {
+
+};
+
 
 // function to handle requests search for a name and return the object
 // controller functions in Express receive the full HTTP request
@@ -198,6 +213,10 @@ const searchName = (req, res) => {
     // if a match, send the match back
     return res.json({ name: doc.name, beds: doc.bedsOwned });
   });
+};
+
+const updateDogAge = (req, res) => {
+
 };
 
 // function to handle a request to update the last added object
@@ -253,5 +272,7 @@ module.exports = {
   setName,
   updateLast,
   searchName,
+  setDogName,
+  updateDogAge,
   notFound,
 };
