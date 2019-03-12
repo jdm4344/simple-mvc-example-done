@@ -12,8 +12,16 @@ const defaultData = {
   bedsOwned: 0,
 };
 
+const defaultDog = {
+  name: 'unnamed',
+  breed: 'mutt',
+  age: 1,
+};
+
 // object for us to keep track of the last Cat we made and dynamically update it sometimes
 let lastAdded = new Cat(defaultData);
+
+let lastDog = new Dog(defaultDog);
 
 // function to handle requests to the main page
 // controller functions in Express receive the full HTTP request
@@ -106,13 +114,13 @@ const hostPage3 = (req, res) => {
 };
 
 const hostPage4 = (req, res) => {
-  const callback =(err, docs) => {
-    if(err) {
-      return res.json({err});
+  const callback = (err, docs) => {
+    if (err) {
+      return res.json({ err });
     }
 
-    return res.render("page4", {dogs: docs});
-  }
+    return res.render('page4', { dogs: docs });
+  };
 
   readAllDogs(req, res, callback);
 };
@@ -166,20 +174,50 @@ const setName = (req, res) => {
   });
 
   // if error, return it
-  savePromise.catch((err) => res.json({ err }));
+  savePromise.catch(err => res.json({ err }));
 
   return res;
 };
 
-const setDogName = (res, req) => {
+// Creates a new dog based on name, breed, and age
+const setDogName = (req, res) => {
+  console.dir(req.query);
 
+  // Make sure it has a name, breed, and age
+  if (!req.body.name || !req.body.breed || !req.body.age) {
+    return res.status(400).json({ error: 'name, breed, and age are all required' });
+  }
+
+  const dogData = {
+    name: req.body.name,
+    breed: req.body.breed,
+    age: req.body.age,
+  };
+
+  // create a new dog object
+  const newDog = new Dog(dogData);
+
+  // create new save promise for the database
+  const savePromise = newDog.save();
+
+  savePromise.then(() => {
+    lastDog = newDog;
+    // return success
+    res.json({ name: lastDog.name, breed: lastDog.breed, age: lastDog.age });
+  });
+
+  // if error, return it
+  savePromise.catch(err => res.json({ err }));
+
+  return res;
 };
-
 
 // function to handle requests search for a name and return the object
 // controller functions in Express receive the full HTTP request
 // and a pre-filled out response object to send
 const searchName = (req, res) => {
+  console.dir(req.query);
+
   // check if there is a query parameter for name
   // BUT WAIT!!?!
   // Why is this req.query and not req.body like the others
@@ -215,8 +253,45 @@ const searchName = (req, res) => {
   });
 };
 
-const updateDogAge = (req, res) => {
+// Finds a dog by name - helper function
+const findDog = (req, res) => Dog.findByName(req.query.name, (err, doc) => {
+    // errs, handle them
+  if (err) {
+    return res.json({ err }); // if error, return it
+  }
 
+        // if no matches, let them know
+        // (does not necessarily have to be an error since technically it worked correctly)
+  if (!doc) {
+    return res.json({ error: 'No dog found with that name' });
+  }
+
+        // if a match, send the match back
+  return res.json({ name: doc.name });
+});
+
+// Finds a dog by name and increases its age by one year
+const updateDogAge = (req, res) => {
+  console.dir(req.query);
+
+  // ensure there is a name
+  if (!req.query.search) {
+    return res.json({ error: 'Name is required to perform a search' });
+  }
+
+  const dog = findDog(req, res);
+
+  dog.age++;
+
+  const savePromise = dog.save();
+
+  // send back the name as a success for now
+  savePromise.then(() => res.json({ name: dog.name, breed: dog.breed, age: dog.age }));
+
+  // if save error, just return an error for now
+  savePromise.catch(err => res.json({ err }));
+
+  return res;
 };
 
 // function to handle a request to update the last added object
@@ -242,7 +317,7 @@ const updateLast = (req, res) => {
   savePromise.then(() => res.json({ name: lastAdded.name, beds: lastAdded.bedsOwned }));
 
   // if save error, just return an error for now
-  savePromise.catch((err) => res.json({ err }));
+  savePromise.catch(err => res.json({ err }));
 };
 
 // function to handle a request to any non-real resources (404)
