@@ -173,8 +173,6 @@ const setName = (req, res) => {
 
 // Creates a new dog based on name, breed, and age
 const setDogName = (req, res) => {
-  console.dir(req.query);
-
   // Make sure it has a name, breed, and age
   if (!req.body.name || !req.body.breed || !req.body.age) {
     return res.status(400).json({ error: 'name, breed, and age are all required' });
@@ -207,8 +205,6 @@ const setDogName = (req, res) => {
 // controller functions in Express receive the full HTTP request
 // and a pre-filled out response object to send
 const searchName = (req, res) => {
-  console.dir(req.query);
-
   // check if there is a query parameter for name
   // BUT WAIT!!?!
   // Why is this req.query and not req.body like the others
@@ -246,8 +242,6 @@ const searchName = (req, res) => {
 
 // Finds a dog by name and increases its age by one year
 const updateDogAge = (req, res) => {
-  console.dir(req.query);
-
   // ensure there is a name
   if (!req.query.name) {
     return res.render('page3', { err: 'Name is required to perform a search' });
@@ -267,21 +261,24 @@ const updateDogAge = (req, res) => {
       return res.render('page3', { message: 'No dog found with that name' });
     }
 
-    doc.age++;
-    
+    const dog = doc;
+
+    dog.age++;
+
     const savePromise = doc.save();
-  
+
     // send back the name to the page
     savePromise.then(() => {
-      res.render('page3', { message: `${doc.name} is now ${doc.age} years old.` });
+      res.render('page3', { message: `${dog.name} is now ${dog.age} years old.` });
       // res.json({ name: doc.name, breed: doc.breed, age: doc.age });
     });
 
     // if save error, just return an error for now
-    savePromise.catch(err => res.json({ err }));
+    savePromise.catch(error => res.json({ error }));
 
     return res;
   });
+  return res;
 };
 
 // function to handle a request to update the last added object

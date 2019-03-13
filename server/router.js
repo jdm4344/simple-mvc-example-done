@@ -36,7 +36,6 @@ const router = (app) => {
   app.post('/updateLast', controllers.updateLast);
 
   app.post('/setDogName', controllers.setDogName);
-
 };
 
 // export the router function

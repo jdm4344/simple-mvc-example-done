@@ -35,9 +35,8 @@ mongoose.connect(dbURL, (err) => {
   if (err) {
     console.log('Could not connect to database');
     throw err;
-  }
-  else{
-    console.dir(`Connected to db at ${dbURL}`);
+  } else {
+    console.log(`Connected to db at ${dbURL}`);
   }
 });
 
