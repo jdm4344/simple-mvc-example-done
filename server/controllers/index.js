@@ -12,16 +12,8 @@ const defaultData = {
   bedsOwned: 0,
 };
 
-const defaultDog = {
-  name: 'unnamed',
-  breed: 'mutt',
-  age: 1,
-};
-
 // object for us to keep track of the last Cat we made and dynamically update it sometimes
 let lastAdded = new Cat(defaultData);
-
-let lastDog = new Dog(defaultDog);
 
 // function to handle requests to the main page
 // controller functions in Express receive the full HTTP request
@@ -201,9 +193,8 @@ const setDogName = (req, res) => {
   const savePromise = newDog.save();
 
   savePromise.then(() => {
-    lastDog = newDog;
     // return success
-    res.json({ name: lastDog.name, breed: lastDog.breed, age: lastDog.age });
+    res.json({ name: dogData.name, breed: dogData.breed, age: dogData.age });
   });
 
   // if error, return it
@@ -253,45 +244,44 @@ const searchName = (req, res) => {
   });
 };
 
-// Finds a dog by name - helper function
-const findDog = (req, res) => Dog.findByName(req.query.name, (err, doc) => {
-    // errs, handle them
-  if (err) {
-    return res.json({ err }); // if error, return it
-  }
-
-        // if no matches, let them know
-        // (does not necessarily have to be an error since technically it worked correctly)
-  if (!doc) {
-    return res.json({ error: 'No dog found with that name' });
-  }
-
-        // if a match, send the match back
-  return res.json({ name: doc.name });
-});
-
 // Finds a dog by name and increases its age by one year
 const updateDogAge = (req, res) => {
   console.dir(req.query);
 
   // ensure there is a name
-  if (!req.query.search) {
-    return res.json({ error: 'Name is required to perform a search' });
+  if (!req.query.name) {
+    return res.render('page3', { err: 'Name is required to perform a search' });
+    // return res.json({ error: 'Name is required to perform a search' });
   }
 
-  const dog = findDog(req, res);
+  // Get the desired dog and increase its age
+  Dog.findByName(req.query.name, (err, doc) => {
+    // errs, handle them
+    if (err) {
+      return res.json({ err }); // if error, return it
+    }
 
-  dog.age++;
+    // if no matches, let them know
+    // (does not necessarily have to be an error since technically it worked correctly)
+    if (!doc) {
+      return res.render('page3', { message: 'No dog found with that name' });
+    }
 
-  const savePromise = dog.save();
+    doc.age++;
+    
+    const savePromise = doc.save();
+  
+    // send back the name to the page
+    savePromise.then(() => {
+      res.render('page3', { message: `${doc.name} is now ${doc.age} years old.` });
+      // res.json({ name: doc.name, breed: doc.breed, age: doc.age });
+    });
 
-  // send back the name as a success for now
-  savePromise.then(() => res.json({ name: dog.name, breed: dog.breed, age: dog.age }));
+    // if save error, just return an error for now
+    savePromise.catch(err => res.json({ err }));
 
-  // if save error, just return an error for now
-  savePromise.catch(err => res.json({ err }));
-
-  return res;
+    return res;
+  });
 };
 
 // function to handle a request to update the last added object

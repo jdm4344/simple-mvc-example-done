@@ -29,12 +29,11 @@
   <br>
   <br>
 
-  <form action="/updateDogAge" method="POST">
+  <form action="/updateDogAge" method="GET">
     <label for="name">Name to increase age of: </label>
     <input type="text" name="name" value="">
     <input type="submit" value="Update Age">
-    
-    <p>{{err}}</p>
   </form>
+  <p>{{message}}</p>
 </body>
 </html>
